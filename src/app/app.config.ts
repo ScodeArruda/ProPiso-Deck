@@ -11,12 +11,16 @@ import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { getStorage, provideStorage } from '@angular/fire/storage';
 import { routes } from './app.routes';
+
 // Importações para o padrão pt-BR
 import { registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
 
 // Importação do ngx-mask
 import { provideEnvironmentNgxMask } from 'ngx-mask';
+
+// Importação das credenciais seguras
+import { environment } from '../environments/environment';
 
 // Registra os dados locais
 registerLocaleData(localePt);
@@ -26,16 +30,10 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideFirebaseApp(() =>
-      initializeApp(
-        {
-          projectId: "propiso-e-deck",
-          appId: "1:1018913188634:web:0c012536414d79ea3b9aa3",
-          storageBucket: "propiso-e-deck.firebasestorage.app",
-          apiKey: "AIzaSyDv2GvKd8ugFFb5feU7CYXdjBrxc1ShoeU",
-          authDomain: "propiso-e-deck.firebaseapp.com",
-          messagingSenderId: "1018913188634",
-        })),
+
+    // Inicialização Limpa consumindo do environment
+    provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
+
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
     provideStorage(() => getStorage()),
