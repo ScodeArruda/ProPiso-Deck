@@ -1,0 +1,117 @@
+<div class="container">
+    <header>
+        <h2>Novo Orçamento</h2>
+        <p>Monte o escopo da obra. Defina o que você irá fornecer e o que o cliente irá comprar.</p>
+    </header>
+
+    <form [formGroup]="orcamentoForm" (ngSubmit)="salvarOrcamento()">
+
+        <section class="card form-section">
+            <h3>Dados do Projeto</h3>
+            <div class="grid-form">
+                <div class="form-group span-2">
+                    <label>Nome do Cliente</label>
+                    <input type="text" formControlName="cliente" placeholder="Ex: João da Silva">
+                </div>
+
+                <div class="form-group span-2">
+                    <label>Descrição do Serviço</label>
+                    <input type="text" formControlName="descricaoServico"
+                        placeholder="Ex: Restauração de Deck Área da Piscina">
+                </div>
+
+                <div class="form-group highlight-box">
+                    <label>Área Total (m²)</label>
+                    <input type="number" formControlName="areaM2" step="0.1">
+                </div>
+
+                <div class="form-group highlight-box">
+                    <label>Valor Mão de Obra (R$)</label>
+                    <input type="text" formControlName="valorMaoDeObra" mask="separator.2" thousandSeparator="."
+                        decimalMarker="," prefix="R$ ">
+                </div>
+            </div>
+        </section>
+
+        <section class="card material-adder">
+            <div class="form-group">
+                <label>Adicionar Material ao Orçamento</label>
+                <div class="add-row">
+                    <select formControlName="materialSelecionado">
+                        <option value="">Selecione um insumo do catálogo...</option>
+                        <option *ngFor="let mat of materiaisCatalogo" [value]="mat.id">
+                            {{ mat.categoria | uppercase }} - {{ mat.nome }}
+                        </option>
+                    </select>
+                    <button type="button" class="btn-add" (click)="adicionarMaterial()">+ Inserir</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h3>Lista de Materiais Necessários</h3>
+
+            <div class="table-container" formArrayName="itens">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Material</th>
+                            <th>Qtd. Estimada</th>
+                            <th>Fornecido por Mim?</th>
+                            <th>Preço Unit. (R$)</th>
+                            <th>Subtotal</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of itensFormArray.controls; let i = index" [formGroupName]="i"
+                            [class.disabled-row]="!item.get('inclusoNoValor')?.value">
+
+                            <td><strong>{{ item.get('nome')?.value }}</strong></td>
+
+                            <td class="qty-col">
+                                {{ item.get('quantidade')?.value }} {{ item.get('unidade')?.value }}
+                            </td>
+
+                            <td class="check-col">
+                                <label class="switch">
+                                    <input type="checkbox" formControlName="inclusoNoValor">
+                                    <span class="slider"></span>
+                                </label>
+                            </td>
+
+                            <td>
+                                <input type="text" formControlName="precoUnitario" mask="separator.2"
+                                    thousandSeparator="." decimalMarker="," prefix="R$ " placeholder="R$ 0,00"
+                                    [attr.disabled]="!item.get('inclusoNoValor')?.value ? true : null">
+                            </td>
+
+                            <td class="subtotal-col">
+                                {{ item.get('subtotal')?.value | currency:'BRL' }}
+                            </td>
+
+                            <td>
+                                <button type="button" class="btn-icon-delete" (click)="removerItem(i)">✖</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div *ngIf="itensFormArray.length === 0" class="empty-state">
+                    Nenhum material adicionado. Selecione acima e clique em "+ Inserir".
+                </div>
+            </div>
+        </section>
+
+        <section class="checkout-footer">
+            <div class="totals">
+                <p>Mão de Obra: <span>{{ totalMaoDeObra | currency:'BRL' }}</span></p>
+                <p>Materiais Inclusos: <span>{{ totalMateriais | currency:'BRL' }}</span></p>
+                <h3 class="grand-total">Total para o Cliente: <span>{{ totalGeral | currency:'BRL' }}</span></h3>
+            </div>
+            <button type="submit" class="btn-submit" [disabled]="orcamentoForm.invalid">Salvar e Gerar
+                Orçamento</button>
+        </section>
+
+    </form>
+</div>
