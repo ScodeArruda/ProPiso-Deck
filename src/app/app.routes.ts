@@ -6,13 +6,10 @@ import { OrcamentosComponent } from './features/orcamentos/orcamentos.component'
 import { VisualizarOrcamentoComponent } from './features/visualizar-orcamento/visualizar-orcamento.component';
 
 export const routes: Routes = [
-    { path: 'materiais', component: MateriaisComponent },
-    { path: '', redirectTo: 'materiais', pathMatch: 'full' },
+    { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+    { path: 'dashboard', component: DashboardComponent },
     { path: 'novo-orcamento', component: OrcamentosComponent },
     { path: 'lista-orcamentos', component: ListaOrcamentosComponent },
-    {
-        path: 'orcamento/:id',
-        component: VisualizarOrcamentoComponent
-    },
-    { path: 'dashboard', component: DashboardComponent },
-];
+    { path: 'materiais', component: MateriaisComponent },
+    { path: 'orcamento/:id', component: VisualizarOrcamentoComponent }
+  ];

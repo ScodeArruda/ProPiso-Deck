@@ -1,0 +1,29 @@
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f4f7f6;
+    /* Cor de fundo cinza clarinho para toda a aplicação */
+}
+
+.main-content {
+    flex: 1;
+    margin-left: 260px;
+    /* Compensa a largura exata da sidebar fixa */
+    padding: 24px;
+    overflow-y: auto;
+    /* Permite rolar a tela principal separadamente */
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+/* Ajuste para o mobile onde o menu perde o position fixed e cai para o topo */
+@media (max-width: 768px) {
+    .app-layout {
+        flex-direction: column;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 16px;
+    }
+}
