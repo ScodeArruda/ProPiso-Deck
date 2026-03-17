@@ -1,0 +1,180 @@
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+    font-family: 'Inter', sans-serif;
+    color: #333;
+}
+
+.dash-header {
+    margin-bottom: 32px;
+
+    h2 {
+        margin: 0;
+        font-size: 28px;
+        color: #1a1a1a;
+    }
+
+    p {
+        margin: 8px 0 0 0;
+        color: #666;
+        font-size: 15px;
+    }
+}
+
+.section-title {
+    margin: 40px 0 16px 0;
+    font-size: 18px;
+    color: #444;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 8px;
+}
+
+/* Base dos Cartões */
+.card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f0f0f0;
+    padding: 24px;
+    transition: transform 0.2s;
+
+    &:hover {
+        transform: translateY(-3px);
+    }
+}
+
+/* CARDS FINANCEIROS (Parte Superior) */
+.finance-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+
+    .highlight-card {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 32px 24px;
+        color: white;
+
+        &.success-bg {
+            background: linear-gradient(135deg, #1e8e3e, #145c27);
+        }
+
+        &.warning-bg {
+            background: linear-gradient(135deg, #f57c00, #e65100);
+        }
+
+        .card-icon {
+            font-size: 48px;
+            opacity: 0.9;
+        }
+
+        .card-content {
+            h3 {
+                margin: 0 0 8px 0;
+                font-size: 16px;
+                font-weight: 500;
+                opacity: 0.9;
+            }
+
+            .value {
+                margin: 0;
+                font-size: 36px;
+                font-weight: bold;
+                letter-spacing: -1px;
+            }
+
+            .subtitle {
+                font-size: 13px;
+                opacity: 0.8;
+                margin-top: 4px;
+                display: block;
+            }
+        }
+    }
+}
+
+/* CARDS DE MÉTRICAS (Parte Inferior) */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+
+    .mini-card {
+        padding: 20px;
+
+        .mini-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+
+            h4 {
+                margin: 0;
+                font-size: 14px;
+                color: #666;
+                font-weight: 600;
+            }
+
+            /* Bolinhas de Status */
+            .dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+
+                &.neutral {
+                    background: #8b5a2b;
+                }
+
+                &.info {
+                    background: #007bff;
+                }
+
+                &.danger {
+                    background: #dc3545;
+                }
+
+                &.success {
+                    background: #28a745;
+                }
+
+                &.warning {
+                    background: #ffc107;
+                }
+
+                &.dark {
+                    background: #343a40;
+                }
+            }
+        }
+
+        .big-number {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 800;
+            color: #333;
+
+            &.success-text {
+                color: #28a745;
+            }
+
+            &.error-text {
+                color: #dc3545;
+            }
+        }
+    }
+}
+
+/* Mobile Responsivo */
+@media (max-width: 768px) {
+    .finance-cards .highlight-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 24px;
+
+        .card-icon {
+            margin-bottom: 12px;
+        }
+    }
+}
