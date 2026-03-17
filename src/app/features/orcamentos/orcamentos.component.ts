@@ -1,11 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { NgxMaskDirective } from 'ngx-mask';
 import { firstValueFrom } from 'rxjs';
 import { Material } from '../../models/material.model';
 import { BudgetService } from '../../services/budget.service';
 import { MaterialService } from '../../services/material.service';
+import { OrcamentoService } from '../../services/orcamento.service';
 
 @Component({
     selector: 'app-orcamentos',
@@ -18,6 +20,8 @@ export class OrcamentosComponent implements OnInit {
     private fb = inject(FormBuilder);
     private materialService = inject(MaterialService);
     private budgetService = inject(BudgetService);
+    private orcamentoService = inject(OrcamentoService);
+    private router = inject(Router);
 
     orcamentoForm!: FormGroup;
     materiaisCatalogo: Material[] = [];
@@ -25,6 +29,8 @@ export class OrcamentosComponent implements OnInit {
     totalMateriais = 0;
     totalMaoDeObra = 0;
     totalGeral = 0;
+
+    isSalvando = false;
 
     async ngOnInit() {
         this.initForm();
@@ -36,18 +42,16 @@ export class OrcamentosComponent implements OnInit {
     }
 
     private initForm(): void {
-        // Calcula a data de hoje + 15 dias como validade padrão
         const dataValidade = new Date();
         dataValidade.setDate(dataValidade.getDate() + 15);
-        const validadeFormatada = dataValidade.toISOString().split('T')[0]; // Formato YYYY-MM-DD para o input type="date"
+        const validadeFormatada = dataValidade.toISOString().split('T')[0];
 
         this.orcamentoForm = this.fb.group({
             cliente: ['', Validators.required],
+            telefone: ['', Validators.required], // NOVO: Campo de telefone
             descricaoServico: ['', Validators.required],
             areaM2: [1, [Validators.required, Validators.min(0.1)]],
             valorMaoDeObra: [0, [Validators.required, Validators.min(0)]],
-            
-            // Novos campos
             validade: [validadeFormatada, Validators.required],
             observacoes: [''],
             termoAceite: [
@@ -55,7 +59,6 @@ export class OrcamentosComponent implements OnInit {
                 'A obra será iniciada mediante pagamento de 50% do valor total. ' +
                 'Alterações no escopo do projeto estão sujeitas a novos cálculos de custo.'
             ],
-
             materialSelecionado: [''],
             itens: this.fb.array([])
         });
@@ -63,6 +66,17 @@ export class OrcamentosComponent implements OnInit {
 
     get itensFormArray(): FormArray {
         return this.orcamentoForm.get('itens') as FormArray;
+    }
+
+    // NOVO: Método para gerar o ID amigável do orçamento
+    private gerarNumeroOrcamento(): string {
+        const data = new Date();
+        const ano = data.getFullYear();
+        const mes = String(data.getMonth() + 1).padStart(2, '0');
+        const dia = String(data.getDate()).padStart(2, '0');
+        // Gera um número aleatório entre 1000 e 9999
+        const aleatorio = Math.floor(1000 + Math.random() * 9000);
+        return `ORC-${ano}${mes}${dia}-${aleatorio}`;
     }
 
     adicionarMaterial() {
@@ -121,28 +135,70 @@ export class OrcamentosComponent implements OnInit {
         this.totalGeral = maoDeObra + somaMateriais;
     }
 
-    salvarOrcamento() {
+    async salvarOrcamento() {
         if (this.orcamentoForm.invalid) {
             alert('Preencha os dados do cliente e as quantidades corretamente.');
+            this.orcamentoForm.markAllAsTouched();
             return;
         }
 
-        const formValues = this.orcamentoForm.value;
-        
-        // Converte a string YYYY-MM-DD do input de volta para um objeto Date real do JavaScript
-        const dataValidadeFinal = new Date(formValues.validade);
-        dataValidadeFinal.setHours(23, 59, 59, 999); // Validade vai até o último segundo do dia escolhido
+        this.isSalvando = true;
 
-        const dadosParaSalvar = {
-            ...formValues,
-            validade: dataValidadeFinal, // Substitui a string pela Data convertida
-            totalGeral: this.totalGeral,
-            dataCriacao: new Date()
-        };
+        try {
+            const formValues = this.orcamentoForm.value;
 
-        delete dadosParaSalvar.materialSelecionado;
+            const dataValidadeFinal = new Date(formValues.validade);
+            dataValidadeFinal.setHours(23, 59, 59, 999);
 
-        console.log('Orçamento Pronto para o Firebase:', dadosParaSalvar);
-        alert('Orçamento gerado! Verifique o console.');
+            const dadosParaSalvar = {
+                numeroOrcamento: this.gerarNumeroOrcamento(),
+                cliente: formValues.cliente,
+                telefone: formValues.telefone,
+                descricaoServico: formValues.descricaoServico,
+                areaM2: formValues.areaM2,
+                itens: formValues.itens,
+                valorMaoDeObra: formValues.valorMaoDeObra,
+                valorMateriais: this.totalMateriais,
+                valorTotal: this.totalGeral,
+                observacoes: formValues.observacoes,
+                termoAceite: formValues.termoAceite,
+                validade: dataValidadeFinal,
+                dataCriacao: new Date()
+            };
+
+            const orcamentoId = await this.orcamentoService.addOrcamento(dadosParaSalvar);
+            console.log('Orçamento salvo no Firebase:', orcamentoId);
+
+            alert(`Orçamento ${dadosParaSalvar.numeroOrcamento} gerado e salvo com sucesso!`);
+
+            // --- CORREÇÃO AQUI ---
+
+            // 1. Limpa a tabela de materiais primeiro
+            this.itensFormArray.clear();
+
+            // 2. Calcula a data de 15 dias para frente novamente
+            const dataValidade = new Date();
+            dataValidade.setDate(dataValidade.getDate() + 15);
+            const validadeFormatada = dataValidade.toISOString().split('T')[0];
+
+            // 3. Reseta o formulário mantendo a mesma instância, apenas injetando os valores padrão
+            this.orcamentoForm.reset({
+                cliente: '',
+                telefone: '',
+                descricaoServico: '',
+                areaM2: 1,
+                valorMaoDeObra: 0,
+                validade: validadeFormatada,
+                observacoes: '',
+                termoAceite: 'O orçamento tem validade conforme a data estipulada neste documento. A obra será iniciada mediante pagamento de 50% do valor total. Alterações no escopo do projeto estão sujeitas a novos cálculos de custo.',
+                materialSelecionado: ''
+            });
+
+        } catch (error) {
+            console.error('Erro ao salvar no Firebase:', error);
+            alert('Erro ao salvar orçamento. Verifique sua conexão e o console.');
+        } finally {
+            this.isSalvando = false;
+        }
     }
 }
