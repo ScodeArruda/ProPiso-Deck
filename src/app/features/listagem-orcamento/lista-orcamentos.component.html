@@ -40,7 +40,7 @@
                         <th>Validade</th>
                         <th>Valor Total</th>
                         <th>Status</th>
-                        <th>Ações</th>
+                        <th class="center">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -56,23 +56,30 @@
                         <td class="valor-col">{{ orc.valorTotal | currency:'BRL' }}</td>
 
                         <td>
-                            <span class="badge"
-                                [ngClass]="verificarStatus(orc.validade) ? 'badge-success' : 'badge-danger'">
-                                {{ verificarStatus(orc.validade) ? 'No Prazo' : 'Expirado' }}
+                            <span class="badge" [ngClass]="getBadgeClass(orc)">
+                                {{ getStatusLabel(orc) }}
                             </span>
                         </td>
 
                         <td class="actions-cell">
-                            <button class="btn-icon btn-view" title="Visualizar / Imprimir" [routerLink]="['/orcamento', orc.id]">📄</button>
-                            <button class="btn-icon btn-delete" title="Excluir Orçamento"
-                                (click)="excluirOrcamento(orc.id)">✖</button>
+                            <ng-container *ngIf="orc.status !== 'aprovado' && orc.status !== 'rejeitado'">
+                                <button class="btn-icon" title="Aprovar Proposta"
+                                    (click)="alterarStatus(orc.id, 'aprovado')">✅</button>
+                                <button class="btn-icon" title="Rejeitar Proposta"
+                                    (click)="alterarStatus(orc.id, 'rejeitado')">❌</button>
+                            </ng-container>
+
+                            <button class="btn-icon btn-view" title="Visualizar / Imprimir"
+                                [routerLink]="['/orcamento', orc.id]">📄</button>
+                            <button class="btn-icon btn-delete" title="Mover para Lixeira"
+                                (click)="alterarStatus(orc.id, 'excluido')">🗑️</button>
                         </td>
                     </tr>
                 </tbody>
             </table>
 
             <div *ngIf="orcamentosFiltrados.length === 0" class="empty-state">
-                Nenhum orçamento encontrado com estes filtros.
+                Nenhum orçamento ativo encontrado com estes filtros.
             </div>
         </div>
     </section>
