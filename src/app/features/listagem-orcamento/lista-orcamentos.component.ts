@@ -2,14 +2,13 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { NgxMaskDirective, NgxMaskPipe } from 'ngx-mask'; // Importe o Pipe para usar no HTML
+import { NgxMaskDirective, NgxMaskPipe } from 'ngx-mask';
 import { Orcamento } from '../../models/orcamento.model';
 import { OrcamentoService } from '../../services/orcamento.service';
 
 @Component({
     selector: 'app-lista-orcamentos',
     standalone: true,
-    // Note a importação do NgxMaskPipe aqui para formatar o telefone na tabela
     imports: [CommonModule, ReactiveFormsModule, NgxMaskDirective, NgxMaskPipe, RouterModule],
     templateUrl: './lista-orcamentos.component.html',
     styleUrls: ['./lista-orcamentos.component.scss']
@@ -20,16 +19,13 @@ export class ListaOrcamentosComponent implements OnInit {
 
     filtroForm!: FormGroup;
 
-    // Guarda a lista original intocada do banco
     todosOrcamentos: Orcamento[] = [];
-    // Guarda a lista que vai ser renderizada na tela (após os filtros)
     orcamentosFiltrados: Orcamento[] = [];
 
     ngOnInit(): void {
         this.initForm();
         this.carregarOrcamentos();
 
-        // Escuta qualquer digitação nos filtros e re-aplica a busca instantaneamente
         this.filtroForm.valueChanges.subscribe(() => {
             this.aplicarFiltros();
         });
@@ -46,17 +42,13 @@ export class ListaOrcamentosComponent implements OnInit {
 
     private carregarOrcamentos() {
         this.orcamentoService.getOrcamentos().subscribe(dados => {
-            // Mapeia os dados do Firebase garantindo que as datas venham no formato Date correto
             this.todosOrcamentos = dados.map(orc => {
                 return {
                     ...orc,
-                    // O Firebase usa "Timestamp". Se existir o método toDate(), executamos.
                     dataCriacao: (orc.dataCriacao as any)?.toDate ? (orc.dataCriacao as any).toDate() : new Date(orc.dataCriacao),
                     validade: (orc.validade as any)?.toDate ? (orc.validade as any).toDate() : new Date(orc.validade),
                 };
             });
-
-            // Assim que a lista carregar, aplica os filtros (se a pessoa já tiver digitado algo)
             this.aplicarFiltros();
         });
     }
@@ -65,21 +57,16 @@ export class ListaOrcamentosComponent implements OnInit {
         const filtros = this.filtroForm.value;
 
         this.orcamentosFiltrados = this.todosOrcamentos.filter(orc => {
+            // REGRA NOVA: Esconde orçamentos excluídos da visão principal (eles continuam existindo no banco para a Dashboard)
+            const statusAtual = orc.status || 'pendente';
+            if (statusAtual === 'excluido') return false;
 
-            // 1. Filtro por Número (Ignora maiúscula/minúscula)
-            const matchNumero = !filtros.numero ||
-                orc.numeroOrcamento.toLowerCase().includes(filtros.numero.toLowerCase());
-
-            // 2. Filtro por Cliente
-            const matchCliente = !filtros.cliente ||
-                orc.cliente.toLowerCase().includes(filtros.cliente.toLowerCase());
-
-            // 3. Filtro por Telefone (Remove a formatação para comparar só os números)
+            const matchNumero = !filtros.numero || orc.numeroOrcamento.toLowerCase().includes(filtros.numero.toLowerCase());
+            const matchCliente = !filtros.cliente || orc.cliente.toLowerCase().includes(filtros.cliente.toLowerCase());
             const telBusca = filtros.telefone?.replace(/\D/g, '') || '';
             const telOrcamento = orc.telefone?.replace(/\D/g, '') || '';
             const matchTelefone = !telBusca || telOrcamento.includes(telBusca);
 
-            // 4. Filtro por Data exata
             let matchData = true;
             if (filtros.data) {
                 const dataBusca = new Date(filtros.data).toISOString().split('T')[0];
@@ -87,28 +74,52 @@ export class ListaOrcamentosComponent implements OnInit {
                 matchData = dataBusca === dataOrcamento;
             }
 
-            // O orçamento só aparece se passar em TODAS as validações digitadas
             return matchNumero && matchCliente && matchTelefone && matchData;
         });
     }
 
-    // Regra de Negócio: Verifica se a data de validade é hoje ou no futuro
-    verificarStatus(dataValidade: Date): boolean {
+    // --- MÉTODOS DE STATUS E UI ---
+
+    verificarSeEstaNoPrazo(dataValidade: Date): boolean {
         const hoje = new Date();
-        hoje.setHours(0, 0, 0, 0); // Zera as horas para a comparação focar só no dia
+        hoje.setHours(0, 0, 0, 0);
         return dataValidade >= hoje;
     }
 
-    async excluirOrcamento(id: string | undefined) {
+    getBadgeClass(orc: Orcamento): string {
+        const status = orc.status || 'pendente';
+        if (status === 'aprovado') return 'badge-success';
+        if (status === 'rejeitado') return 'badge-danger';
+
+        // Se for pendente, verifica o prazo
+        return this.verificarSeEstaNoPrazo(orc.validade) ? 'badge-warning' : 'badge-dark';
+    }
+
+    getStatusLabel(orc: Orcamento): string {
+        const status = orc.status || 'pendente';
+        if (status === 'aprovado') return 'Aprovado';
+        if (status === 'rejeitado') return 'Rejeitado';
+
+        return this.verificarSeEstaNoPrazo(orc.validade) ? 'Pendente' : 'Expirado';
+    }
+
+    // --- AÇÕES DO USUÁRIO ---
+
+    async alterarStatus(id: string | undefined, novoStatus: 'aprovado' | 'rejeitado' | 'excluido') {
         if (!id) return;
 
-        if (confirm('Atenção: Tem certeza que deseja excluir permanentemente este orçamento?')) {
+        let mensagem = '';
+        if (novoStatus === 'aprovado') mensagem = 'O cliente aceitou a proposta? Marcar como APROVADO?';
+        if (novoStatus === 'rejeitado') mensagem = 'Marcar esta proposta como REJEITADA?';
+        if (novoStatus === 'excluido') mensagem = 'Tem certeza que deseja mover este orçamento para a LIXEIRA?';
+
+        if (confirm(mensagem)) {
             try {
-                await this.orcamentoService.deleteOrcamento(id);
-                // A atualização da tela é automática porque estamos "inscritos" no Observable do Firebase!
+                // Atualiza apenas o campo 'status' no Firebase
+                await this.orcamentoService.updateOrcamento(id, { status: novoStatus });
             } catch (error) {
-                console.error('Erro ao excluir:', error);
-                alert('Ocorreu um erro ao excluir.');
+                console.error('Erro ao atualizar status:', error);
+                alert('Erro ao processar a ação.');
             }
         }
     }
