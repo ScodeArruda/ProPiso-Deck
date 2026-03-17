@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { ListaOrcamentosComponent } from './features/listagem-orcamento/lista-orcamentos.component';
 import { MateriaisComponent } from './features/materiais/materiais.component';
 import { OrcamentosComponent } from './features/orcamentos/orcamentos.component';
@@ -12,5 +13,6 @@ export const routes: Routes = [
     {
         path: 'orcamento/:id',
         component: VisualizarOrcamentoComponent
-    }
+    },
+    { path: 'dashboard', component: DashboardComponent },
 ];

@@ -3,16 +3,16 @@ export interface ItemOrcamento {
     nome: string;
     unidade: string;
     quantidade: number;
-    inclusoNoValor: boolean; 
-    precoUnitario: number;   
+    inclusoNoValor: boolean;
+    precoUnitario: number;
     subtotal: number;
 }
 
 export interface Orcamento {
-    id?: string;                 // ID gerado pelo Firebase (ex: sxZj1m0...)
-    numeroOrcamento: string;     // NOVO: ID amigável gerado por nós (ex: ORC-20260317-1234)
+    id?: string;
+    numeroOrcamento: string;
     cliente: string;
-    telefone: string;            // NOVO: Contato do cliente
+    telefone: string;
     descricaoServico: string;
     areaM2: number;
     itens: ItemOrcamento[];
@@ -23,4 +23,8 @@ export interface Orcamento {
     termoAceite: string;
     validade: Date;
     dataCriacao: Date;
+
+    // NOVO: Controle de status do orçamento
+    // 'pendente' é o padrão quando nasce. 
+    status?: 'pendente' | 'aprovado' | 'rejeitado' | 'excluido';
 }
