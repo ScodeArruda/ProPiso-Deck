@@ -1,7 +1,12 @@
-<div class="app-layout">
-    <app-sidebar></app-sidebar>
+<ng-container *ngIf="authService.user$ | async as user; else telaDeLogin">
+    <div class="app-layout">
+        <app-sidebar></app-sidebar>
+        <main class="main-content">
+            <router-outlet></router-outlet>
+        </main>
+    </div>
+</ng-container>
 
-    <main class="main-content">
-        <router-outlet></router-outlet>
-    </main>
-</div>
+<ng-template #telaDeLogin>
+    <router-outlet></router-outlet>
+</ng-template>
