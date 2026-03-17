@@ -1,0 +1,79 @@
+<div class="container">
+    <header>
+        <h2>Orçamentos Cadastrados</h2>
+        <p>Acompanhe o status de validade e busque pelo histórico de clientes.</p>
+    </header>
+
+    <section class="card form-section">
+        <form [formGroup]="filtroForm" class="grid-form">
+            <div class="form-group">
+                <label>Buscar por Nº</label>
+                <input type="text" formControlName="numero" placeholder="Ex: ORC-2026...">
+            </div>
+
+            <div class="form-group">
+                <label>Buscar por Cliente</label>
+                <input type="text" formControlName="cliente" placeholder="Nome do cliente">
+            </div>
+
+            <div class="form-group">
+                <label>Buscar por Telefone</label>
+                <input type="text" formControlName="telefone" mask="(00) 00000-0000" placeholder="(00) 00000-0000">
+            </div>
+
+            <div class="form-group">
+                <label>Data de Criação</label>
+                <input type="date" formControlName="data">
+            </div>
+        </form>
+    </section>
+
+    <section class="card">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nº Orçamento</th>
+                        <th>Cliente</th>
+                        <th>Contato</th>
+                        <th>Criação</th>
+                        <th>Validade</th>
+                        <th>Valor Total</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let orc of orcamentosFiltrados">
+                        <td class="orc-number">{{ orc.numeroOrcamento }}</td>
+                        <td><strong>{{ orc.cliente }}</strong></td>
+
+                        <td>{{ orc.telefone | mask: '(00) 00000-0000' }}</td>
+
+                        <td>{{ orc.dataCriacao | date:'dd/MM/yyyy' }}</td>
+                        <td>{{ orc.validade | date:'dd/MM/yyyy' }}</td>
+
+                        <td class="valor-col">{{ orc.valorTotal | currency:'BRL' }}</td>
+
+                        <td>
+                            <span class="badge"
+                                [ngClass]="verificarStatus(orc.validade) ? 'badge-success' : 'badge-danger'">
+                                {{ verificarStatus(orc.validade) ? 'No Prazo' : 'Expirado' }}
+                            </span>
+                        </td>
+
+                        <td class="actions-cell">
+                            <button class="btn-icon btn-view" title="Visualizar / Imprimir" [routerLink]="['/orcamento', orc.id]">📄</button>
+                            <button class="btn-icon btn-delete" title="Excluir Orçamento"
+                                (click)="excluirOrcamento(orc.id)">✖</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div *ngIf="orcamentosFiltrados.length === 0" class="empty-state">
+                Nenhum orçamento encontrado com estes filtros.
+            </div>
+        </div>
+    </section>
+</div>

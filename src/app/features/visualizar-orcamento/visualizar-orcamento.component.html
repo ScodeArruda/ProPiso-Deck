@@ -1,0 +1,108 @@
+<div class="actions-bar no-print">
+    <button class="btn-back" (click)="voltar()">⬅ Voltar à Lista</button>
+
+    <div class="action-buttons" *ngIf="orcamento$ | async as orcamento">
+        <button class="btn-whatsapp" (click)="enviarWhatsApp(orcamento)">💬 Enviar WhatsApp</button>
+        <button class="btn-email" (click)="enviarEmail(orcamento)">✉️ Preparar E-mail</button>
+        <button class="btn-print" (click)="imprimir()">🖨️ Guardar PDF / Imprimir</button>
+    </div>
+</div>
+
+<div class="a4-page" *ngIf="orcamento$ | async as orcamento">
+
+    <header class="timbrado-header">
+        <div class="logo-area">
+            <h1>Arruda</h1>
+            <p>Pisos de Madeira & Decks</p>
+        </div>
+        <div class="doc-info">
+            <h2>PROPOSTA COMERCIAL</h2>
+            <p><strong>Nº:</strong> {{ orcamento.numeroOrcamento }}</p>
+            <p><strong>Emissão:</strong> {{ orcamento.dataCriacao | date:'dd/MM/yyyy' }}</p>
+            <p><strong>Validade:</strong> {{ orcamento.validade | date:'dd/MM/yyyy' }}</p>
+        </div>
+    </header>
+
+    <section class="section-box">
+        <h3>Dados do Cliente</h3>
+        <div class="info-grid">
+            <p><strong>Nome:</strong> {{ orcamento.cliente }}</p>
+            <p><strong>Contacto:</strong> {{ orcamento.telefone }}</p>
+            <p><strong>Área a Executar:</strong> {{ orcamento.areaM2 }} m²</p>
+            <p class="full-width"><strong>Serviço:</strong> {{ orcamento.descricaoServico }}</p>
+        </div>
+    </section>
+
+    <section class="section-box mt-20">
+        <h3>Insumos e Materiais Fornecidos pela Arruda</h3>
+        <table class="orcamento-table">
+            <thead>
+                <tr>
+                    <th>Material</th>
+                    <th class="center">Qtd</th>
+                    <th class="right">Preço Unit.</th>
+                    <th class="right">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ng-container *ngFor="let item of orcamento.itens">
+                    <tr *ngIf="item.inclusoNoValor">
+                        <td>{{ item.nome }}</td>
+                        <td class="center">{{ item.quantidade }} {{ item.unidade }}</td>
+                        <td class="right">{{ item.precoUnitario | currency:'BRL' }}</td>
+                        <td class="right">{{ item.subtotal | currency:'BRL' }}</td>
+                    </tr>
+                </ng-container>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="section-box mt-20">
+        <h3>Materiais a Serem Adquiridos pelo Cliente</h3>
+        <ul class="cliente-compra-list">
+            <ng-container *ngFor="let item of orcamento.itens">
+                <li *ngIf="!item.inclusoNoValor">
+                    ☑️ <strong>{{ item.quantidade }} {{ item.unidade }}</strong> de {{ item.nome }}
+                </li>
+            </ng-container>
+        </ul>
+    </section>
+
+    <section class="finance-summary mt-20">
+        <div class="finance-row">
+            <span>Mão de Obra Técnica:</span>
+            <span>{{ orcamento.valorMaoDeObra | currency:'BRL' }}</span>
+        </div>
+        <div class="finance-row">
+            <span>Materiais Inclusos:</span>
+            <span>{{ orcamento.valorMateriais | currency:'BRL' }}</span>
+        </div>
+        <div class="finance-row grand-total">
+            <span>Valor Total do Projecto:</span>
+            <span>{{ orcamento.valorTotal | currency:'BRL' }}</span>
+        </div>
+    </section>
+
+    <section class="terms-section mt-20">
+        <div *ngIf="orcamento.observacoes">
+            <h4>Observações Técnicas</h4>
+            <p>{{ orcamento.observacoes }}</p>
+        </div>
+        <div class="mt-10">
+            <h4>Termos e Condições</h4>
+            <p>{{ orcamento.termoAceite }}</p>
+        </div>
+    </section>
+
+    <footer class="assinatura-footer">
+        <div class="linha-assinatura">
+            <p>{{ orcamento.cliente }}</p>
+            <span>De Acordo (Cliente)</span>
+        </div>
+        <div class="linha-assinatura">
+            <p>Arruda Pisos de Madeira</p>
+            <span>Responsável Técnico</span>
+        </div>
+    </footer>
+
+</div>
