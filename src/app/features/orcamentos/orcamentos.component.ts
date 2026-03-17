@@ -22,35 +22,42 @@ export class OrcamentosComponent implements OnInit {
     orcamentoForm!: FormGroup;
     materiaisCatalogo: Material[] = [];
 
-    // Totais calculados dinamicamente
     totalMateriais = 0;
     totalMaoDeObra = 0;
     totalGeral = 0;
 
     async ngOnInit() {
         this.initForm();
-        // Carrega o catálogo de materiais para o Select
         this.materiaisCatalogo = await firstValueFrom(this.materialService.getMateriais());
 
-        // Fica escutando qualquer mudança no formulário para refazer as contas financeiras
         this.orcamentoForm.valueChanges.subscribe(() => {
             this.calcularTotaisFinanceiros();
-        });
-
-        // Se a área do projeto mudar, recalcula a quantidade física de todos os itens já inseridos
-        this.orcamentoForm.get('areaM2')?.valueChanges.subscribe(novaArea => {
-            if (novaArea > 0) this.recalcularQuantidadesFisicas(novaArea);
         });
     }
 
     private initForm(): void {
+        // Calcula a data de hoje + 15 dias como validade padrão
+        const dataValidade = new Date();
+        dataValidade.setDate(dataValidade.getDate() + 15);
+        const validadeFormatada = dataValidade.toISOString().split('T')[0]; // Formato YYYY-MM-DD para o input type="date"
+
         this.orcamentoForm = this.fb.group({
             cliente: ['', Validators.required],
             descricaoServico: ['', Validators.required],
             areaM2: [1, [Validators.required, Validators.min(0.1)]],
             valorMaoDeObra: [0, [Validators.required, Validators.min(0)]],
-            materialSelecionado: [''], // Campo temporário só para o Select
-            itens: this.fb.array([])  // O FormArray que guarda os materiais do orçamento
+            
+            // Novos campos
+            validade: [validadeFormatada, Validators.required],
+            observacoes: [''],
+            termoAceite: [
+                'O orçamento tem validade conforme a data estipulada neste documento. ' +
+                'A obra será iniciada mediante pagamento de 50% do valor total. ' +
+                'Alterações no escopo do projeto estão sujeitas a novos cálculos de custo.'
+            ],
+
+            materialSelecionado: [''],
+            itens: this.fb.array([])
         });
     }
 
@@ -58,7 +65,6 @@ export class OrcamentosComponent implements OnInit {
         return this.orcamentoForm.get('itens') as FormArray;
     }
 
-    // Adiciona um material do Select para dentro da tabela do Orçamento
     adicionarMaterial() {
         const materialId = this.orcamentoForm.get('materialSelecionado')?.value;
         if (!materialId) return;
@@ -66,49 +72,30 @@ export class OrcamentosComponent implements OnInit {
         const materialDb = this.materiaisCatalogo.find(m => m.id === materialId);
         if (!materialDb) return;
 
-        // Evita adicionar o mesmo material duas vezes
         const jaExiste = this.itensFormArray.controls.some(ctrl => ctrl.get('materialId')?.value === materialId);
         if (jaExiste) {
             alert('Este material já está no orçamento.');
             return;
         }
 
-        const area = this.orcamentoForm.get('areaM2')?.value || 1;
+        const [itemInicializado] = this.budgetService.inicializarItens([materialDb]);
 
-        // Passa pelo BudgetService para aplicar a regra de rendimento e perda
-        const [itemCalculado] = this.budgetService.calcularItens(area, [materialDb]);
-
-        // Cria a linha (FormGroup) para este material específico
         const itemGroup = this.fb.group({
-            materialId: [itemCalculado.materialId],
-            nome: [itemCalculado.nome],
-            unidade: [itemCalculado.unidade],
-            quantidade: [itemCalculado.quantidade],
-            inclusoNoValor: [false], // Padrão: Cliente compra
-            precoUnitario: [0, Validators.min(0)],
-            subtotal: [0]
+            materialId: [itemInicializado.materialId],
+            nome: [itemInicializado.nome],
+            unidade: [itemInicializado.unidade],
+            quantidade: [1, [Validators.required, Validators.min(0.01)]],
+            inclusoNoValor: [itemInicializado.inclusoNoValor],
+            precoUnitario: [itemInicializado.precoUnitario, Validators.min(0)],
+            subtotal: [itemInicializado.subtotal]
         });
 
         this.itensFormArray.push(itemGroup);
-        this.orcamentoForm.get('materialSelecionado')?.setValue(''); // Limpa o Select
+        this.orcamentoForm.get('materialSelecionado')?.setValue('');
     }
 
     removerItem(index: number) {
         this.itensFormArray.removeAt(index);
-    }
-
-    // Atualiza as quantidades (ex: de 4L para 8L) se o cliente mudar a área da obra
-    private recalcularQuantidadesFisicas(novaArea: number) {
-        this.itensFormArray.controls.forEach(control => {
-            const matId = control.get('materialId')?.value;
-            const materialDb = this.materiaisCatalogo.find(m => m.id === matId);
-
-            if (materialDb) {
-                const [recalculado] = this.budgetService.calcularItens(novaArea, [materialDb]);
-                control.patchValue({ quantidade: recalculado.quantidade }, { emitEvent: false });
-            }
-        });
-        this.calcularTotaisFinanceiros(); // Força o recálculo do dinheiro após mudar a quantidade
     }
 
     private calcularTotaisFinanceiros() {
@@ -126,7 +113,6 @@ export class OrcamentosComponent implements OnInit {
                 somaMateriais += sub;
             }
 
-            // Atualiza o subtotal da linha visualmente
             control.patchValue({ subtotal: sub }, { emitEvent: false });
         });
 
@@ -137,19 +123,26 @@ export class OrcamentosComponent implements OnInit {
 
     salvarOrcamento() {
         if (this.orcamentoForm.invalid) {
-            alert('Preencha os dados do cliente e a área corretamente.');
+            alert('Preencha os dados do cliente e as quantidades corretamente.');
             return;
         }
 
+        const formValues = this.orcamentoForm.value;
+        
+        // Converte a string YYYY-MM-DD do input de volta para um objeto Date real do JavaScript
+        const dataValidadeFinal = new Date(formValues.validade);
+        dataValidadeFinal.setHours(23, 59, 59, 999); // Validade vai até o último segundo do dia escolhido
+
         const dadosParaSalvar = {
-            ...this.orcamentoForm.value,
+            ...formValues,
+            validade: dataValidadeFinal, // Substitui a string pela Data convertida
             totalGeral: this.totalGeral,
             dataCriacao: new Date()
         };
 
-        delete dadosParaSalvar.materialSelecionado; // Não precisamos salvar o valor do Select no banco
+        delete dadosParaSalvar.materialSelecionado;
 
         console.log('Orçamento Pronto para o Firebase:', dadosParaSalvar);
-        alert('Orçamento gerado! Verifique o console. Faremos a integração com o banco no próximo passo.');
+        alert('Orçamento gerado! Verifique o console.');
     }
 }

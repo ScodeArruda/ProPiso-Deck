@@ -43,6 +43,10 @@
         grid-column: span 2;
     }
 
+    .span-4 {
+        grid-column: span 4;
+    }
+
     .form-group {
         display: flex;
         flex-direction: column;
@@ -55,13 +59,19 @@
         }
 
         input,
-        select {
+        select,
+        textarea {
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 14px;
             width: 100%; // Garante que não vaze do container
             box-sizing: border-box;
+            font-family: inherit; // Mantém a fonte do sistema
+        }
+
+        textarea {
+            resize: vertical; // Permite redimensionar apenas para baixo
         }
     }
 
@@ -82,9 +92,10 @@
         grid-template-columns: 1fr;
         /* Empilha tudo em 1 coluna */
 
-        .span-2 {
+        .span-2,
+        .span-4 {
             grid-column: span 1;
-            /* Remove o span 2 no mobile */
+            /* Remove o span no mobile */
         }
     }
 }
@@ -153,6 +164,17 @@
         .qty-col {
             font-weight: bold;
             color: #444;
+
+            .input-with-unit {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+
+                input {
+                    width: 70px; // Input menorzinho só para a quantidade
+                    text-align: center;
+                }
+            }
         }
 
         .subtotal-col {
@@ -264,10 +286,12 @@
     padding: 24px;
     border-radius: 8px;
     border: 1px solid #ddd;
-    gap: 32px; /* Adiciona um espaço seguro e inquebrável entre os textos e o botão */
+    gap: 32px;
+    /* Adiciona um espaço seguro e inquebrável entre os textos e o botão */
 
     .totals {
-        min-width: 300px; /* Garante um tamanho mínimo no desktop */
+        min-width: 300px;
+        /* Garante um tamanho mínimo no desktop */
         max-width: 400px;
         flex: 1;
 
@@ -275,8 +299,10 @@
             margin: 0 0 8px 0;
             font-size: 14px;
             color: #555;
-            display: flex; /* Flexbox na linha substitui o float */
-            justify-content: space-between; /* Joga o texto para a esquerda e o valor para a direita */
+            display: flex;
+            /* Flexbox na linha substitui o float */
+            justify-content: space-between;
+            /* Joga o texto para a esquerda e o valor para a direita */
 
             span {
                 font-weight: bold;
@@ -331,7 +357,7 @@
         }
 
         .totals .grand-total {
-            font-size: 18px; 
+            font-size: 18px;
         }
 
         .btn-submit {
@@ -340,79 +366,3 @@
         }
     }
 }
-
-// .checkout-footer {
-//     display: flex;
-//     justify-content: space-between;
-//     align-items: flex-end;
-//     background: #f8f9fa;
-//     padding: 24px;
-//     border-radius: 8px;
-//     border: 1px solid #ddd;
-
-//     .totals {
-//         width: 100%; // Ajuda no layout flex do mobile
-
-//         p {
-//             margin: 0 0 8px 0;
-//             font-size: 14px;
-//             color: #555;
-
-//             span {
-//                 font-weight: bold;
-//                 float: right;
-//                 margin-left: 24px;
-//             }
-//         }
-
-//         .grand-total {
-//             margin: 8px 0 0 0;
-//             color: #222;
-//             font-size: 20px;
-
-//             span {
-//                 color: #28a745;
-//                 float: right;
-//                 margin-left: 24px;
-//             }
-//         }
-//     }
-
-//     .btn-submit {
-//         padding: 16px 32px;
-//         background: #0056b3;
-//         color: white;
-//         font-size: 16px;
-//         font-weight: bold;
-//         border: none;
-//         border-radius: 6px;
-//         cursor: pointer;
-//         transition: 0.2s;
-//         white-space: nowrap; // Impede que o texto "Salvar e Gerar" quebre
-
-//         &:disabled {
-//             background: #ccc;
-//             cursor: not-allowed;
-//         }
-
-//         &:hover:not(:disabled) {
-//             background: #004494;
-//         }
-//     }
-
-//     /* Regra Mobile para o Rodapé Financeiro */
-//     @media (max-width: 768px) {
-//         flex-direction: column; // Empilha os totais e o botão
-//         align-items: stretch; // Estica o botão para preencher a tela
-//         gap: 24px; // Espaçamento entre os totais e o botão
-
-//         .totals .grand-total {
-//             font-size: 18px; // Reduz levemente a fonte no mobile
-//         }
-
-//         .btn-submit {
-//             width: 100%;
-//             padding: 14px;
-//         }
-//     }
-// }

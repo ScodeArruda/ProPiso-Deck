@@ -14,11 +14,17 @@ export interface ItemOrcamento {
 export interface Orcamento {
     id?: string;
     cliente: string;
-    descricaoServico: string; // Ex: "Reparo de piso na sala"
+    descricaoServico: string;
     areaM2: number;
     itens: ItemOrcamento[];
     valorMaoDeObra: number;
     valorMateriais: number;
     valorTotal: number;
+    
+    // Novos campos
+    observacoes: string;
+    termoAceite: string;
+    validade: Date;
+    
     dataCriacao: Date;
 }

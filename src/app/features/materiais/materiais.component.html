@@ -1,7 +1,7 @@
 <div class="container">
     <header>
         <h2>Catálogo de Materiais</h2>
-        <p>Cadastre os insumos e seus respectivos rendimentos para os cálculos de área.</p>
+        <p>Cadastre os insumos básicos que ficarão disponíveis para uso nos orçamentos.</p>
     </header>
 
     <section class="form-section">
@@ -31,17 +31,6 @@
                 </select>
             </div>
 
-            <div class="form-group">
-                <label>Rendimento por m²</label>
-                <input type="number" formControlName="rendimentoPorM2" step="0.01"
-                    title="Quantidade gasta para fazer 1m²">
-            </div>
-
-            <div class="form-group">
-                <label>Margem de Perda (%)</label>
-                <input type="number" formControlName="perdaPadrao" step="1">
-            </div>
-
             <button type="submit" class="btn-submit" [disabled]="materialForm.invalid">
                 Salvar Material
             </button>
@@ -57,7 +46,7 @@
                     <tr>
                         <th>Nome</th>
                         <th>Categoria</th>
-                        <th>Rendimento/m²</th>
+                        <th>Unidade</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -65,7 +54,7 @@
                     <tr *ngFor="let mat of materiais$ | async">
                         <td>{{ mat.nome }}</td>
                         <td class="capitalize">{{ mat.categoria }}</td>
-                        <td>{{ mat.rendimentoPorM2 }} {{ mat.unidade }}</td>
+                        <td class="capitalize">{{ mat.unidade }}</td>
                         <td>
                             <button class="btn-delete" (click)="excluirMaterial(mat.id)">Excluir</button>
                         </td>
