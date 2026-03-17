@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
     selector: 'app-sidebar',
@@ -10,5 +11,11 @@ import { RouterModule } from '@angular/router';
     styleUrls: ['./sidebar.component.scss']
 })
 export class SidebarComponent {
-    // Se futuramente quiser colocar controle de menu aberto/fechado no mobile, a lógica entra aqui!
+    private authService = inject(AuthService);
+    private router = inject(Router);
+
+    async sair() {
+        await this.authService.logout();
+        this.router.navigate(['/login']);
+    }
 }
