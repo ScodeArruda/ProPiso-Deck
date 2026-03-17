@@ -17,12 +17,12 @@
                 <div class="form-group span-2">
                     <label>Descrição do Serviço</label>
                     <input type="text" formControlName="descricaoServico"
-                        placeholder="Ex: Restauração de Deck Área da Piscina">
+                        placeholder="Ex: Instalação de Deck de Ipê Área da Piscina">
                 </div>
 
                 <div class="form-group highlight-box">
                     <label>Área Total (m²)</label>
-                    <input type="number" formControlName="areaM2" step="0.1">
+                    <input type="number" formControlName="areaM2" step="0.1" placeholder="Ex: 35.5">
                 </div>
 
                 <div class="form-group highlight-box">
@@ -56,7 +56,7 @@
                     <thead>
                         <tr>
                             <th>Material</th>
-                            <th>Qtd. Estimada</th>
+                            <th>Quantidade</th>
                             <th>Fornecido por Mim?</th>
                             <th>Preço Unit. (R$)</th>
                             <th>Subtotal</th>
@@ -70,7 +70,10 @@
                             <td><strong>{{ item.get('nome')?.value }}</strong></td>
 
                             <td class="qty-col">
-                                {{ item.get('quantidade')?.value }} {{ item.get('unidade')?.value }}
+                                <div class="input-with-unit">
+                                    <input type="number" formControlName="quantidade" step="0.01" min="0">
+                                    <span>{{ item.get('unidade')?.value }}</span>
+                                </div>
                             </td>
 
                             <td class="check-col">
@@ -83,7 +86,7 @@
                             <td>
                                 <input type="text" formControlName="precoUnitario" mask="separator.2"
                                     thousandSeparator="." decimalMarker="," prefix="R$ " placeholder="R$ 0,00"
-                                    [attr.disabled]="!item.get('inclusoNoValor')?.value ? true : null">
+                                    [readonly]="!item.get('inclusoNoValor')?.value">
                             </td>
 
                             <td class="subtotal-col">
@@ -100,6 +103,32 @@
                 <div *ngIf="itensFormArray.length === 0" class="empty-state">
                     Nenhum material adicionado. Selecione acima e clique em "+ Inserir".
                 </div>
+            </div>
+        </section>
+
+        <section class="card form-section">
+            <h3>Condições e Prazos</h3>
+            <div class="grid-form">
+
+                <div class="form-group span-2">
+                    <label>Validade do Orçamento</label>
+                    <input type="date" formControlName="validade"
+                        title="Após esta data, o documento é considerado inválido.">
+                </div>
+
+                <div class="form-group span-2"></div>
+
+                <div class="form-group span-4">
+                    <label>Observações do Projeto</label>
+                    <textarea formControlName="observacoes" rows="3"
+                        placeholder="Ex: O contrapiso deve estar nivelado e completamente seco antes da instalação do piso de madeira..."></textarea>
+                </div>
+
+                <div class="form-group span-4">
+                    <label>Termo de Aceite e Condições</label>
+                    <textarea formControlName="termoAceite" rows="4"></textarea>
+                </div>
+
             </div>
         </section>
 

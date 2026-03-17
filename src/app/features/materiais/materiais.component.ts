@@ -24,12 +24,11 @@ export class MateriaisComponent implements OnInit {
     }
 
     private initForm(): void {
+        // Removidos os campos rendimentoPorM2 e perdaPadrao
         this.materialForm = this.fb.group({
             nome: ['', Validators.required],
             categoria: ['madeira', Validators.required],
-            unidade: ['m2', Validators.required],
-            rendimentoPorM2: [1, [Validators.required, Validators.min(0.01)]],
-            perdaPadrao: [10, [Validators.required, Validators.min(0)]]
+            unidade: ['m2', Validators.required]
         });
     }
 
@@ -38,7 +37,8 @@ export class MateriaisComponent implements OnInit {
             try {
                 const novoMaterial = this.materialForm.value;
                 await this.materialService.addMaterial(novoMaterial);
-                this.materialForm.reset({ categoria: 'madeira', unidade: 'm2', perdaPadrao: 10 });
+                // Reset ajustado apenas para os campos restantes
+                this.materialForm.reset({ categoria: 'madeira', unidade: 'm2' });
                 alert('Material cadastrado com sucesso!');
             } catch (error) {
                 console.error('Erro ao salvar material:', error);
