@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { NgxMaskDirective, NgxMaskPipe } from 'ngx-mask';
 import { Orcamento } from '../../models/orcamento.model';
+import { AlertService } from '../../services/alert.service'; // NOVO: Importando o serviço de alertas
 import { OrcamentoService } from '../../services/orcamento.service';
 
 @Component({
@@ -16,6 +17,7 @@ import { OrcamentoService } from '../../services/orcamento.service';
 export class ListaOrcamentosComponent implements OnInit {
     private fb = inject(FormBuilder);
     private orcamentoService = inject(OrcamentoService);
+    private alertService = inject(AlertService); // NOVO: Injetando o serviço
 
     filtroForm!: FormGroup;
 
@@ -108,18 +110,38 @@ export class ListaOrcamentosComponent implements OnInit {
     async alterarStatus(id: string | undefined, novoStatus: 'aprovado' | 'rejeitado' | 'excluido') {
         if (!id) return;
 
+        let titulo = '';
         let mensagem = '';
-        if (novoStatus === 'aprovado') mensagem = 'O cliente aceitou a proposta? Marcar como APROVADO?';
-        if (novoStatus === 'rejeitado') mensagem = 'Marcar esta proposta como REJEITADA?';
-        if (novoStatus === 'excluido') mensagem = 'Tem certeza que deseja mover este orçamento para a LIXEIRA?';
+        let textoBotao = 'Sim, alterar!';
 
-        if (confirm(mensagem)) {
+        if (novoStatus === 'aprovado') {
+            titulo = 'Aprovar Orçamento?';
+            mensagem = 'O cliente aceitou a proposta? Isto marcará a proposta como ganha.';
+        } else if (novoStatus === 'rejeitado') {
+            titulo = 'Rejeitar Orçamento?';
+            mensagem = 'Isto marcará a proposta como perdida.';
+            textoBotao = 'Sim, rejeitar';
+        } else if (novoStatus === 'excluido') {
+            titulo = 'Mover para Lixeira?';
+            mensagem = 'O orçamento sairá desta lista, mas as métricas ainda refletirão as perdas.';
+            textoBotao = 'Sim, excluir';
+        }
+
+        // NOVO: Chamada elegante do SweetAlert2
+        const confirmado = await this.alertService.confirmar(titulo, mensagem, textoBotao);
+
+        if (confirmado) {
             try {
                 // Atualiza apenas o campo 'status' no Firebase
                 await this.orcamentoService.updateOrcamento(id, { status: novoStatus });
+
+                // NOVO: Feedback silencioso e elegante
+                this.alertService.toast('Status atualizado!', 'success');
             } catch (error) {
                 console.error('Erro ao atualizar status:', error);
-                alert('Erro ao processar a ação.');
+
+                // NOVO: Alerta de erro padronizado
+                this.alertService.erro('Ocorreu um erro ao processar a ação. Verifique sua conexão.');
             }
         }
     }
