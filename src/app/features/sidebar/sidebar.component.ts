@@ -14,11 +14,20 @@ export class SidebarComponent {
     private authService = inject(AuthService);
     private router = inject(Router);
 
-    async sair() {
-        // 1. Navega para o Login primeiro (isso mata os listeners do Firestore na tela atual)
-        await this.router.navigate(['/login']);
+    // NOVO: Controle do menu mobile
+    isMenuOpen = false;
 
-        // 2. Só então faz o logout no Firebase
+    toggleMenu() {
+        this.isMenuOpen = !this.isMenuOpen;
+    }
+
+    closeMenu() {
+        this.isMenuOpen = false;
+    }
+
+    async sair() {
+        this.closeMenu(); // Fecha o menu ao sair
+        await this.router.navigate(['/login']);
         await this.authService.logout();
     }
 }

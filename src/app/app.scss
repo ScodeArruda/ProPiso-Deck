@@ -16,14 +16,27 @@
     box-sizing: border-box;
 }
 
-/* Ajuste para o mobile onde o menu perde o position fixed e cai para o topo */
+/* Ajuste para o mobile */
 @media (max-width: 768px) {
     .app-layout {
-        flex-direction: column;
+      flex-direction: column;
     }
-
+    
     .main-content {
-        margin-left: 0;
-        padding: 16px;
+      margin-left: 0;
+      padding: 16px;
+      margin-top: 60px; /* NOVO: Compensa a altura exata da barra preta do mobile */
     }
-}
+  }
+
+/* Ajuste para o mobile onde o menu perde o position fixed e cai para o topo */
+// @media (max-width: 768px) {
+//     .app-layout {
+//         flex-direction: column;
+//     }
+
+//     .main-content {
+//         margin-left: 0;
+//         padding: 16px;
+//     }
+// }

@@ -1,4 +1,4 @@
-<aside class="sidebar">
+<!-- <aside class="sidebar">
     <div class="brand-area">
         <div class="logo-icon">🪵</div>
         <div class="brand-text">
@@ -26,6 +26,57 @@
         <a routerLink="/materiais" routerLinkActive="active-link" class="nav-item">
             <span class="icon">📦</span>
             <span>Catálogo de Materiais</span>
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <button class="btn-logout" title="Sair do sistema" (click)="sair()">
+            <span class="icon">🚪</span> Sair
+        </button>
+    </div>
+</aside> -->
+
+<div class="mobile-topbar">
+    <div class="brand-mobile">
+        <span class="logo-icon">🪵</span>
+        <span>Arruda Pisos</span>
+    </div>
+    <button class="hamburger-btn" (click)="toggleMenu()">
+        ☰
+    </button>
+</div>
+
+<div class="sidebar-overlay" *ngIf="isMenuOpen" (click)="closeMenu()"></div>
+
+<aside class="sidebar" [class.open]="isMenuOpen">
+    <div class="brand-area">
+        <div class="logo-icon">🪵</div>
+        <div class="brand-text">
+            <h2>Arruda</h2>
+            <p>Pisos & Decks</p>
+        </div>
+        <button class="close-btn" (click)="closeMenu()">✕</button>
+    </div>
+
+    <nav class="nav-menu">
+        <a routerLink="/dashboard" routerLinkActive="active-link" class="nav-item" (click)="closeMenu()">
+            <span class="icon">📊</span>
+            <span>Dashboard</span>
+        </a>
+
+        <a routerLink="/novo-orcamento" routerLinkActive="active-link" class="nav-item" (click)="closeMenu()">
+            <span class="icon">➕</span>
+            <span>Novo Orçamento</span>
+        </a>
+
+        <a routerLink="/lista-orcamentos" routerLinkActive="active-link" class="nav-item" (click)="closeMenu()">
+            <span class="icon">📂</span>
+            <span>Meus Orçamentos</span>
+        </a>
+
+        <a routerLink="/materiais" routerLinkActive="active-link" class="nav-item" (click)="closeMenu()">
+            <span class="icon">📦</span>
+            <span>Catálogo</span>
         </a>
     </nav>
 
