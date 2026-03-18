@@ -1,24 +1,25 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, Injector, runInInjectionContext } from '@angular/core';
 import { Auth, authState, signInWithEmailAndPassword, signOut, User } from '@angular/fire/auth';
 import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
     private auth = inject(Auth);
+    private injector = inject(Injector); // NOVO: Injetamos o contexto
 
-    // Fica escutando se o utilizador está logado ou não
     public user$: Observable<User | null> = authState(this.auth);
 
     async login(email: string, password: string) {
-        try {
+        // Abraçamos a chamada de login
+        return runInInjectionContext(this.injector, async () => {
             return await signInWithEmailAndPassword(this.auth, email, password);
-        } catch (error) {
-            console.error('Erro no login:', error);
-            throw error;
-        }
+        });
     }
 
     async logout() {
-        await signOut(this.auth);
+        // Abraçamos a chamada de logout
+        return runInInjectionContext(this.injector, async () => {
+            await signOut(this.auth);
+        });
     }
 }

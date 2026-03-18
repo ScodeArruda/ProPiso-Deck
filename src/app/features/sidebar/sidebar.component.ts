@@ -15,7 +15,10 @@ export class SidebarComponent {
     private router = inject(Router);
 
     async sair() {
+        // 1. Navega para o Login primeiro (isso mata os listeners do Firestore na tela atual)
+        await this.router.navigate(['/login']);
+
+        // 2. Só então faz o logout no Firebase
         await this.authService.logout();
-        this.router.navigate(['/login']);
     }
 }
