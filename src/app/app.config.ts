@@ -2,7 +2,7 @@ import {
   ApplicationConfig,
   LOCALE_ID,
   provideBrowserGlobalErrorListeners,
-  provideZoneChangeDetection
+  provideZoneChangeDetection, isDevMode
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
@@ -21,6 +21,7 @@ import { provideEnvironmentNgxMask } from 'ngx-mask';
 
 // Importação das credenciais seguras
 import { environment } from '../environments/environment';
+import { provideServiceWorker } from '@angular/service-worker';
 
 // Registra os dados locais
 registerLocaleData(localePt);
@@ -42,6 +43,12 @@ export const appConfig: ApplicationConfig = {
     { provide: LOCALE_ID, useValue: 'pt-BR' },
 
     // Provedor da máscara
-    provideEnvironmentNgxMask()
+    provideEnvironmentNgxMask(), provideServiceWorker('ngsw-worker.js', {
+            enabled: !isDevMode(),
+            registrationStrategy: 'registerWhenStable:30000'
+          }), provideServiceWorker('ngsw-worker.js', {
+            enabled: !isDevMode(),
+            registrationStrategy: 'registerWhenStable:30000'
+          })
   ]
 };
