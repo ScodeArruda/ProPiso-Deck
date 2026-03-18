@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { NgxMaskDirective } from 'ngx-mask';
 import { firstValueFrom } from 'rxjs';
 import { Material } from '../../models/material.model';
+import { AlertService } from '../../services/alert.service'; // NOVO: Importando o serviço de alertas
 import { BudgetService } from '../../services/budget.service';
 import { MaterialService } from '../../services/material.service';
 import { OrcamentoService } from '../../services/orcamento.service';
@@ -21,6 +22,7 @@ export class OrcamentosComponent implements OnInit {
     private materialService = inject(MaterialService);
     private budgetService = inject(BudgetService);
     private orcamentoService = inject(OrcamentoService);
+    private alertService = inject(AlertService); // NOVO: Injetando o serviço
     private router = inject(Router);
 
     orcamentoForm!: FormGroup;
@@ -48,7 +50,7 @@ export class OrcamentosComponent implements OnInit {
 
         this.orcamentoForm = this.fb.group({
             cliente: ['', Validators.required],
-            telefone: ['', Validators.required], // NOVO: Campo de telefone
+            telefone: ['', Validators.required],
             descricaoServico: ['', Validators.required],
             areaM2: [1, [Validators.required, Validators.min(0.1)]],
             valorMaoDeObra: [0, [Validators.required, Validators.min(0)]],
@@ -68,13 +70,11 @@ export class OrcamentosComponent implements OnInit {
         return this.orcamentoForm.get('itens') as FormArray;
     }
 
-    // NOVO: Método para gerar o ID amigável do orçamento
     private gerarNumeroOrcamento(): string {
         const data = new Date();
         const ano = data.getFullYear();
         const mes = String(data.getMonth() + 1).padStart(2, '0');
         const dia = String(data.getDate()).padStart(2, '0');
-        // Gera um número aleatório entre 1000 e 9999
         const aleatorio = Math.floor(1000 + Math.random() * 9000);
         return `ORC-${ano}${mes}${dia}-${aleatorio}`;
     }
@@ -88,7 +88,8 @@ export class OrcamentosComponent implements OnInit {
 
         const jaExiste = this.itensFormArray.controls.some(ctrl => ctrl.get('materialId')?.value === materialId);
         if (jaExiste) {
-            alert('Este material já está no orçamento.');
+            // NOVO: Toast de aviso em vez de alert
+            this.alertService.toast('Este material já está no orçamento.', 'warning');
             return;
         }
 
@@ -137,7 +138,8 @@ export class OrcamentosComponent implements OnInit {
 
     async salvarOrcamento() {
         if (this.orcamentoForm.invalid) {
-            alert('Preencha os dados do cliente e as quantidades corretamente.');
+            // NOVO: Alerta de erro profissional
+            this.alertService.erro('Preencha os dados do cliente e as quantidades corretamente.', 'Atenção!');
             this.orcamentoForm.markAllAsTouched();
             return;
         }
@@ -169,9 +171,8 @@ export class OrcamentosComponent implements OnInit {
             const orcamentoId = await this.orcamentoService.addOrcamento(dadosParaSalvar);
             console.log('Orçamento salvo no Firebase:', orcamentoId);
 
-            alert(`Orçamento ${dadosParaSalvar.numeroOrcamento} gerado e salvo com sucesso!`);
-
-            // --- CORREÇÃO AQUI ---
+            // NOVO: Alerta de sucesso profissional
+            this.alertService.sucesso(`O orçamento ${dadosParaSalvar.numeroOrcamento} foi gerado com sucesso!`, 'Orçamento Salvo!');
 
             // 1. Limpa a tabela de materiais primeiro
             this.itensFormArray.clear();
@@ -181,7 +182,7 @@ export class OrcamentosComponent implements OnInit {
             dataValidade.setDate(dataValidade.getDate() + 15);
             const validadeFormatada = dataValidade.toISOString().split('T')[0];
 
-            // 3. Reseta o formulário mantendo a mesma instância, apenas injetando os valores padrão
+            // 3. Reseta o formulário mantendo a mesma instância
             this.orcamentoForm.reset({
                 cliente: '',
                 telefone: '',
@@ -196,7 +197,8 @@ export class OrcamentosComponent implements OnInit {
 
         } catch (error) {
             console.error('Erro ao salvar no Firebase:', error);
-            alert('Erro ao salvar orçamento. Verifique sua conexão e o console.');
+            // NOVO: Erro com SweetAlert
+            this.alertService.erro('Erro ao salvar orçamento. Verifique sua conexão com a internet.');
         } finally {
             this.isSalvando = false;
         }
